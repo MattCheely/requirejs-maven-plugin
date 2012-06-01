@@ -1,0 +1,11 @@
+Copyright (c) 2012 Matthew Cheely <matt.cheely@gmail.com>
+
+Based on brew maven plugin, Copyright (c) 2002-2011 Jacob Hansson <jacob@voltvoodoo.com>
+
+requirejs-maven-plugin is released under the LGPL. See LICENSE.txt.
+
+Third party libraries
+---------------------
+See LICENSES.txt for full licenses.
+
+RequireJS r.js is licensed under the MIT or the new BSD license
