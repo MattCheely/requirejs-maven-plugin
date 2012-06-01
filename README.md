@@ -48,7 +48,7 @@ defined using the CommonJS Asynchronous Module Definition pattern, see the Requi
 http://requirejs.org
 
 The "optimize" goal is by default attached to the "process-classes" maven phase. It will go through
-all the js modules you have listed in your plugin configuration, interpret the AMD dependencies
+all the js modules you have listed in your project configuration file, interpret the AMD dependencies
 each file has, aggregate and minify that entire dependency tree, and put the resulting minified filed in 
 your output directory.
 
