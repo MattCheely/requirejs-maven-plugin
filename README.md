@@ -15,20 +15,20 @@ https://github.com/jakewins/brew
 
 **simple**
 
-The plugin has a very simple design. Just provide json optimizaton plugin as documented
-at RequireJS, and let the optimizer script do the rest of the work.
+The plugin has a very simple design. Just provide a json confg file for the
+optimization process as documented at RequireJS.
 
 **forward/backward/sideways compatible**
 
 We'll make an effort to keep the r.js version embedded in the plugin up to date, but if
-we've fallen behind, or you need to work with an older version for some reason, it's as
+we've fallen behind, or you need to work with an older or custom version for some reason, it's as
 simple as specifying the path to your version.
 
 **maven filtering**
 
 You can optionally tell the plugin to filter your config file with the standard maven filters
-giving you the ability to use properties defined in your pom file or by maven itself. (but see
-the note below about relative paths)
+giving you the ability to use properties defined in your pom file or by maven itself (but see
+the note below about relative paths).
 
 ## Usage
 
@@ -89,12 +89,13 @@ The path to the config file that will be passed to the r.js optimizer.
 **optimizerFile**
 
 The path to the optimizer js that will be run to optimize your app. If not provided, the default version
-from the classpath will be used
+from the classpath will be used.
 
 **filterConfig**
 
 Boolean option to indicate whether or not to run the config file through maven filters to replace tokens
 like ${basedir}
+
 *Important Note:* if you enable filterConfig, be sure that the 'appDir' and 'dir' options in your config
 use absolute paths. The filtering process creates a filtered copy of the config file in a temporary location,
 which will break relative path handling for the input and output directories.
