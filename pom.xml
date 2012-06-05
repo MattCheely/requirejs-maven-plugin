@@ -10,7 +10,7 @@
 	<groupId>com.github.mcheely</groupId>
 	<artifactId>requirejs-maven-plugin</artifactId>
 	<name>RequireJS Mavein Plugin</name>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>maven-plugin</packaging>
 
 	<url>http://github.com/mcheely/requirejs-maven-plugin</url>
