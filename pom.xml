@@ -9,7 +9,7 @@
 
 	<groupId>com.github.mcheely</groupId>
 	<artifactId>requirejs-maven-plugin</artifactId>
-	<name>RequireJS Mavein Plugin</name>
+	<name>RequireJS Maven Plugin</name>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
@@ -64,6 +64,18 @@
           <artifactId>plexus-utils</artifactId>
           <version>2.0.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.7R3</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.google.javascript</groupId>
+            <artifactId>closure-compiler</artifactId>
+            <version>r1352</version>
+            <type>jar</type>
+        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -79,20 +91,8 @@
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.mozilla</groupId>
-			<artifactId>rhino</artifactId>
-			<version>1.7R3</version>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.google.javascript</groupId>
-			<artifactId>closure-compiler</artifactId>
-			<version>r1352</version>
-			<type>jar</type>
-		</dependency>
 	</dependencies>
-  
+
     <build>
       <pluginManagement>
         <plugins>
