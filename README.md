@@ -1,22 +1,16 @@
 # RequireJS maven plugin
 
-Builds javascript applications using the CommonJS Asynchronous Module Definition (AMD) 
+Builds javascript applications using the Asynchronous Module Definition (AMD)
 pattern to define classes and dependencies between them. See:
 
-http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
-
-## Origin
-
-This project is originally based on Jacob Hansson's brew plugin at:
-
-https://github.com/jakewins/brew
+https://github.com/amdjs/amdjs-api/wiki/AMD
 
 ## Features
 
 **simple**
 
 The plugin has a very simple design. Just provide a json confg file for the
-optimization process as documented at RequireJS.
+optimization process as documented at http://requirejs.org/docs/optimization.html#wholeproject
 
 **forward/backward/sideways compatible**
 
@@ -34,7 +28,7 @@ the note below about relative paths).
 
 Just add the plugin to your pom:
 
-    <plugins> 
+    <plugins>
       <plugin>
         <groupId>com.github.mcheely</groupId>
         <artifactId>requirejs-maven-plugin</artifactId>
@@ -72,7 +66,7 @@ http://requirejs.org
 
 The "optimize" goal is by default attached to the "process-classes" maven phase. It will go through
 all the js modules you have listed in your project configuration file, interpret the AMD dependencies
-each file has, aggregate and minify that entire dependency tree, and put the resulting minified filed in 
+each file has, aggregate and minify that entire dependency tree, and put the resulting minified filed in
 your output directory.
 
 Optimization is configured using a json project configuration file. For details of the options available,
@@ -97,5 +91,14 @@ Boolean option to indicate whether or not to run the config file through maven f
 like ${basedir}
 
 *Important Note:* if you enable filterConfig, be sure that the 'appDir' and 'dir' options in your config
-use absolute paths. The filtering process creates a filtered copy of the config file in a temporary location,
-which will break relative path handling for the input and output directories.
+use absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to start
+your paths. Otherwise, the build won't find your files, as the filtered version of the config is placed in
+a temporary location outside of the project.
+
+## Thanks
+
+requirejs-maven-plugin is available on github because my employer, lulu.com, is great about letting me
+share the work I do for them.
+
+This project is originally based on Jacob Hansson's brew plugin at:
+https://github.com/jakewins/brew
