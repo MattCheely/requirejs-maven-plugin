@@ -36,41 +36,73 @@
 package com.github.mcheely.maven.requirejs;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ErrorReporter;
-import org.mozilla.javascript.EvaluatorException;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.Kit;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.WrappedException;
+import org.mozilla.javascript.tools.SourceReader;
+import org.mozilla.javascript.tools.shell.Global;
+import org.mozilla.javascript.tools.shell.QuitAction;
+import org.mozilla.javascript.tools.shell.ShellContextFactory;
 
 /**
- * The BasicRhinoShell program.
- *
- * Can execute scripts interactively or in batch mode at the command line. An
- * example of controlling the JavaScript engine.
- *
+ * Class for running a single js file. This is just a stripped down
+ * version of org.mozilla.javascript.tools.shell.Main
+ * 
  * @author Norris Boyd
  * @author Matthew Cheely
  */
-public class RhinoRunner extends ScriptableObject {
+public class RhinoRunner  {
 
     private static final long serialVersionUID = 3859222870741981547L;
+    
+    /**
+     * Proxy class to avoid proliferation of anonymous classes.
+     */
+    private static class IProxy implements ContextAction, QuitAction
+    {
+        private static final int PROCESS_FILES = 1;
+        private static final int SYSTEM_EXIT = 3;
 
-    @Override
-    public String getClassName() {
-        return "global";
+        private int type;
+        String[] args;
+
+        IProxy(int type)
+        {
+            this.type = type;
+        }
+
+        public Object run(Context cx)
+        {
+            if (type == PROCESS_FILES) {
+                processFiles(cx, args);
+            } else {
+                throw Kit.codeBug();
+            }
+            return null;
+        }
+
+        public void quit(Context cx, int exitCode)
+        {
+            if (type == SYSTEM_EXIT) {
+                System.exit(exitCode);
+                return;
+            }
+            throw Kit.codeBug();
+        }
     }
+    
+    private static ShellContextFactory shellContextFactory = new ShellContextFactory();
+    private static Global global = new Global();
+    private static List<File> fileList = new ArrayList<File>();
 
     /**
      * Execute a js file.
@@ -80,203 +112,74 @@ public class RhinoRunner extends ScriptableObject {
      * @param globalVariables global js variables to set.
      * @param reporter error reporter.
      */
-    public static void exec(File[] includes, File mainScript, Object[] args, Map<String, Object> globalVariables, ErrorReporter reporter) {
-        // Associate a new Context with this thread
-        Context cx = Context.enter();
-        cx.setErrorReporter(reporter);
-        try {
-            // Initialize the standard objects (Object, Function, etc.)
-            // This must be done before scripts can be executed.
-            RhinoRunner runner = new RhinoRunner();
-            cx.initStandardObjects(runner);
-
-            // Define some global functions particular to the BasicRhinoShell.
-            // Note
-            // that these functions are not part of ECMA.
-            String[] names = { "print", "load", "readFile", "warn", "getResourceAsStream" };
-            runner.defineFunctionProperties(names, RhinoRunner.class, ScriptableObject.DONTENUM);
-
-            for (File include : includes) {
-                runner.processSource(cx, include);
-            }
-            
-            // Set up "arguments" in the global scope to contain the command
-            // line arguments after the name of the script to execute
-            Object[] array;
-            if (args.length == 0) {
-                array = new Object[0];
-            } else {
-                int length = args.length;
-                array = new Object[length];
-                System.arraycopy(args, 0, array, 0, length);
-            }
-            Scriptable argsObj = cx.newArray(runner, array);
-            
-            runner.defineProperty("arguments", argsObj, ScriptableObject.DONTENUM);
-            
-            for (String key : globalVariables.keySet()) {
-                runner.defineProperty(key, globalVariables.get(key), ScriptableObject.DONTENUM);
-            }
-
-            runner.processSource(cx, mainScript);
-        } finally {
-            Context.exit();
-        }
-    }
-    
-    /**
-     * Print the string values of its arguments.
-     *
-     * This method is defined as a JavaScript function. Note that its arguments
-     * are of the "varargs" form, which allows it to handle an arbitrary number
-     * of arguments supplied to the JavaScript function.
-     * 
-     * @param cx the js execution context
-     * @param thisObj ?
-     * @param args ?
-     * @param funObj ?
-     */
-    public static void print(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                System.out.print(" ");
-            }
-
-            // Convert the arbitrary JavaScript value into a string form.
-            String s = Context.toString(args[i]);
-
-            System.out.print(s);
-        }
-        System.out.println();
-    }
-
-    /**
-     * Report a warning.
-     * 
-     * @param cx the js execution context
-     * @param thisObj ?
-     * @param args ?
-     * @param funObj ?
-     */
-    public static void warn(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
-        String message = Context.toString(args[ 0 ]);
-        int line = (int) Context.toNumber(args[ 1 ]);
-        String source = Context.toString(args[ 2 ]);
-        int column = (int) Context.toNumber(args[ 3 ]);
-        cx.getErrorReporter().warning(message, null, line, source, column);
-    }
-
-    /**
-     * Read a file from a path. Exposed to js execution environment.
-     * 
-     * @param path the path to the file to be read
-     * @return the contents of the file as a string
-     */
-    public String readFile(String path) {
-        try {
-            InputStream inputStream;
-            File file = new File(path);
-            if (file.exists()) {
-                inputStream = new FileInputStream(path);
-            } else {
-                inputStream = getClass().getClassLoader().getResourceAsStream(path);
-            }
-              
-            return IOUtil.toString(inputStream);
-        } catch (IOException exc) {
-            throw new RuntimeException("wrap: " + exc.getMessage(), exc);
-        }
-    }
-
-    /**
-     * Load and execute a set of JavaScript source files.
-     *This method is exposed to js execution environment.
-     * 
-     * @param cx the js execution context
-     * @param thisObj ?
-     * @param args ?
-     * @param funObj ?
-     */
-    public static void load(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
-        RhinoRunner runner = (RhinoRunner) getTopLevelScope(thisObj);
-        for (Object element : args) {
-            runner.processSource(cx, Context.toString(element));
-        }
-    }
-    
-    /**
-     * Get a classpath resource as an input stream. Exposed to js environment?
-     * @param path the path to the resource
-     * @return an input stream for the resource
-     */
-    public InputStream getResourceAsStream(String path) {
-        File file = new File(path);
-        if (file.exists()) {
-            try {
-                return new FileInputStream(path);
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            return getClass().getClassLoader().getResourceAsStream(path);
-        }
-    }
-
-    private void processSource(Context cx, String path) {
-        String filename = path;
-        File file = new File(filename);
+    public static void exec(File mainScript, String[] args, ErrorReporter reporter) {
+        shellContextFactory.setErrorReporter(reporter);
         
-        if (file.exists()) {
-            processSource(cx, file);
-        } else {
-            if (filename.startsWith(".")) {
-                filename = filename.substring(1);
+        global.init(shellContextFactory);
+        
+        fileList.add(mainScript);
+        
+        IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
+        iproxy.args = args;
+        shellContextFactory.call(iproxy);
+    }
+    
+    static void processFiles(Context cx, String[] args) {
+        // define "arguments" array in the top-level object:
+        // need to allocate new array since newArray requires instances
+        // of exactly Object[], not ObjectSubclass[]
+        Object[] array = new Object[args.length];
+        System.arraycopy(args, 0, array, 0, args.length);
+        Scriptable argsObj = cx.newArray(global, array);
+        global.defineProperty("arguments", argsObj,
+                              ScriptableObject.DONTENUM);
+
+        for (File file: fileList) {
+            try {
+                processFile(cx, global, file);
+            } catch (IOException ioex) {
+                Context.reportError("Could not read file: " + file.getAbsolutePath());
+            } catch (RhinoException rex) {
+                Context.reportError("Rhino Exception: " + rex.getMessage());
+            } catch (VirtualMachineError ex) {
+                Context.reportError("Uncaught javascript exception: " + ex.toString());
             }
-            
-            if (!filename.startsWith("/")) {
-                filename = "/" + filename;
-            }
-            
-            InputStreamReader in = new InputStreamReader(getClass().getResourceAsStream(filename));
-            processSource(cx, in, filename);
         }
     }
     
-
-    private void processSource(Context cx, File file) {
-        if (file != null) {
-            String filename = file.getAbsolutePath();
-            InputStreamReader in = null;
-            
-            try {
-                in = new FileReader(file);
-            } catch (FileNotFoundException ex) {
-                Context.reportError("Couldn't open file \"" + filename + "\".");
-                return;
-            }
-
-            processSource(cx, in, filename);
-        }
-    }
-    
-    private void processSource(Context cx, InputStreamReader in, String filename) {
-        try {
-            cx.evaluateReader(this, in, filename, 1, null);
-        } catch (WrappedException we) {
-            System.err.println(we.getWrappedException().toString());
-            we.printStackTrace();
-        } catch (EvaluatorException ee) {
-            System.err.println("js: " + ee.getMessage());
-        } catch (JavaScriptException jse) {
-            System.err.println("js: " + jse.getMessage());
-        } catch (IOException ioe) {
-            System.err.println(ioe.toString());
-        } finally {
-            try {
-                in.close();
-            } catch (IOException ioe) {
-                System.err.println(ioe.toString());
+    static void processFile(Context cx, Scriptable scope, File file) throws IOException {
+        String path = file.getAbsolutePath();
+        Object source = readFileOrUrl(path, true);
+        Script script;
+        
+        String strSrc = (String) source;
+        // Support the executable script #! syntax: If
+        // the first line begins with a '#', treat the whole
+        // line as a comment.
+        if (strSrc.length() > 0 && strSrc.charAt(0) == '#') {
+            for (int i = 1; i != strSrc.length(); ++i) {
+              int c = strSrc.charAt(i);
+              if (c == '\n' || c == '\r') {
+                  strSrc = strSrc.substring(i);
+                  break;
+              }
             }
         }
+        
+        script = cx.compileString(strSrc, path, 1, null);
+        
+        if (script != null) {
+            script.exec(cx, scope);
+        }
     }
+
+    /**
+     * Read file or url specified by <tt>path</tt>.
+     * @return file or url content as <tt>byte[]</tt> or as <tt>String</tt> if
+     * <tt>convertToString</tt> is true.
+     */
+    private static Object readFileOrUrl(String path, boolean convertToString) throws IOException {
+        return SourceReader.readFileOrUrl(path, convertToString, shellContextFactory.getCharacterEncoding());
+    }
+  
 }

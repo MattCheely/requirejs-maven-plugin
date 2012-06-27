@@ -12,8 +12,6 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
-import org.codehaus.plexus.logging.LoggerManager;
-import org.codehaus.plexus.logging.console.ConsoleLoggerManager;
 import org.mozilla.javascript.ErrorReporter;
 
 /**
@@ -24,8 +22,6 @@ import org.mozilla.javascript.ErrorReporter;
  *
  */
 public class OptimizeMojo extends AbstractMojo {
-    
-    private static final LoggerManager CONSOLE_LOGGER_MANAGER = new ConsoleLoggerManager("WARN");
     
     /**
      * @component role="org.apache.maven.shared.filtering.MavenFileFilter"

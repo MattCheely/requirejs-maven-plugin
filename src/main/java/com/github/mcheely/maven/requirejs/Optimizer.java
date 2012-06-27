@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.ErrorReporter;
@@ -39,15 +37,11 @@ public class Optimizer {
      */
     public void optimize(File buildProfile, File optimizerFile, ErrorReporter reporter) throws IOException {
         
-        File[] includes = new File[0];
-
         String[] args = new String[2];
         args[0] = "-o";
         args[1] = buildProfile.getAbsolutePath();
-
-        Map<String, Object> globalVariables = new HashMap<String, Object>();
         
-        RhinoRunner.exec(includes, optimizerFile, args, globalVariables, reporter);
+        RhinoRunner.exec(optimizerFile, args, reporter);
     }
 
     private File getClasspathOptimizerFile() throws IOException {
