@@ -16,7 +16,7 @@ optimization process as documented at http://requirejs.org/docs/optimization.htm
 
 We'll make an effort to keep the r.js version embedded in the plugin up to date, but if
 we've fallen behind, or you need to work with an older or custom version for some reason, it's as
-simple as specifying the path to your version.
+simple as specifying the path to the script you want to use.
 
 **maven filtering**
 
@@ -60,7 +60,7 @@ Just add the plugin to your pom:
 ### Goal: optimize
 
 Uses the r.js optimizer to aggregate and minify your project. Dependencies should be defined using
-the CommonJS Asynchronous Module Definition pattern, see the RequireJS documentation at:
+the Asynchronous Module Definition pattern, see the RequireJS documentation at:
 
 http://requirejs.org
 
@@ -82,17 +82,17 @@ The path to the config file that will be passed to the r.js optimizer.
 
 **optimizerFile**
 
-The path to the optimizer js that will be run to optimize your app. If not provided, the default version
+The path to the optimizer script (r.js) that will be run to optimize your app. If not provided, the default version
 from the classpath will be used.
 
 **filterConfig**
 
 Boolean option to indicate whether or not to run the config file through maven filters to replace tokens
-like ${basedir}
+like ${basedir} (defaults to false)
 
 *Important Note:* if you enable filterConfig, be sure that the 'appDir' and 'dir' options in your config
-use absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to start
-your paths. Otherwise, the build won't find your files, as the filtered version of the config is placed in
+use absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to prefix
+your paths. Otherwise, the build won't find your files, as the filtered version of the config file is created in
 a temporary location outside of the project.
 
 ## Thanks
