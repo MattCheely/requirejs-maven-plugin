@@ -42,6 +42,7 @@ import java.util.List;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.Kit;
 import org.mozilla.javascript.RhinoException;
@@ -51,7 +52,6 @@ import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.tools.SourceReader;
 import org.mozilla.javascript.tools.shell.Global;
 import org.mozilla.javascript.tools.shell.QuitAction;
-import org.mozilla.javascript.tools.shell.ShellContextFactory;
 
 /**
  * Class for running a single js file. This is just a stripped down
@@ -67,21 +67,17 @@ public class RhinoRunner  {
     /**
      * Proxy class to avoid proliferation of anonymous classes.
      */
-    private static class IProxy implements ContextAction, QuitAction
-    {
+    private static class IProxy implements ContextAction, QuitAction {
         private static final int PROCESS_FILES = 1;
-        private static final int SYSTEM_EXIT = 3;
 
         private int type;
         String[] args;
 
-        IProxy(int type)
-        {
+        IProxy(int type) {
             this.type = type;
         }
 
-        public Object run(Context cx)
-        {
+        public Object run(Context cx) {
             if (type == PROCESS_FILES) {
                 processFiles(cx, args);
             } else {
@@ -90,17 +86,16 @@ public class RhinoRunner  {
             return null;
         }
 
-        public void quit(Context cx, int exitCode)
-        {
-            if (type == SYSTEM_EXIT) {
-                System.exit(exitCode);
-                return;
+        @Override
+        public void quit(Context context, int exitCode) {
+            if (exitCode != 0) {
+                throw new RhinoRunnerException("Script exited with non-zero status: " + exitCode);
             }
-            throw Kit.codeBug();
         }
+
     }
     
-    private static ShellContextFactory shellContextFactory = new ShellContextFactory();
+    private static ContextFactory contextFactory = new ContextFactory();
     private static Global global = new Global();
     private static List<File> fileList = new ArrayList<File>();
 
@@ -113,15 +108,18 @@ public class RhinoRunner  {
      * @param reporter error reporter.
      */
     public static void exec(File mainScript, String[] args, ErrorReporter reporter) {
-        shellContextFactory.setErrorReporter(reporter);
+        //contextFactory.setErrorReporter(reporter);
         
-        global.init(shellContextFactory);
+        global.init(contextFactory);
+        
         
         fileList.add(mainScript);
         
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
-        shellContextFactory.call(iproxy);
+        global.initQuitAction(iproxy);
+        
+        contextFactory.call(iproxy);
     }
     
     static void processFiles(Context cx, String[] args) {
@@ -134,15 +132,22 @@ public class RhinoRunner  {
         global.defineProperty("arguments", argsObj,
                               ScriptableObject.DONTENUM);
 
+
         for (File file: fileList) {
             try {
                 processFile(cx, global, file);
             } catch (IOException ioex) {
-                Context.reportError("Could not read file: " + file.getAbsolutePath());
+                String message = "Could not read file: " + file.getAbsolutePath();
+                Context.reportError(message);
+                throw new RhinoRunnerException(message, ioex);
             } catch (RhinoException rex) {
-                Context.reportError("Rhino Exception: " + rex.getMessage());
+                String message = "Rhino Exception: " + rex.getMessage();
+                Context.reportError(message);
+                throw new RhinoRunnerException(message, rex);
             } catch (VirtualMachineError ex) {
-                Context.reportError("Uncaught javascript exception: " + ex.toString());
+                String message = "Uncaught javascript exception: " + ex.toString();
+                Context.reportError(message);
+                throw new RhinoRunnerException(message, ex);
             }
         }
     }
@@ -179,7 +184,7 @@ public class RhinoRunner  {
      * <tt>convertToString</tt> is true.
      */
     private static Object readFileOrUrl(String path, boolean convertToString) throws IOException {
-        return SourceReader.readFileOrUrl(path, convertToString, shellContextFactory.getCharacterEncoding());
+        return SourceReader.readFileOrUrl(path, convertToString, null);
     }
   
 }

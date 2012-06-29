@@ -13,6 +13,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.mozilla.javascript.ErrorReporter;
+import org.mozilla.javascript.EvaluatorException;
 
 /**
  * Mojo for running r.js optimization.
@@ -83,9 +84,9 @@ public class OptimizeMojo extends AbstractMojo {
                 builder.optimize(createBuildProfile(), reporter);
             }
         } catch (IOException e) {
-            
-        } catch (MavenFilteringException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
+            throw new MojoExecutionException("Failed to read r.js", e);
+        } catch (EvaluatorException e) {
+            throw new MojoExecutionException("Failed to execute r.js", e);
         }
 
     }
@@ -100,10 +101,19 @@ public class OptimizeMojo extends AbstractMojo {
     }
 
     @SuppressWarnings("rawtypes")
-    private File createBuildProfile() throws IOException, MavenFilteringException {
+    private File createBuildProfile() throws MojoExecutionException {
         if (filterConfig) {
-            File filteredConfig = File.createTempFile("requirejs-maven-plugin-profile", ".js");
-            mavenFileFilter.copyFile(configFile, filteredConfig, true, project, new ArrayList(), false, "UTF8", session);
+            File filteredConfig;
+            
+            try {
+                filteredConfig = File.createTempFile("requirejs-maven-plugin-profile", ".js");
+                mavenFileFilter.copyFile(configFile, filteredConfig, true, project, new ArrayList(), true, "UTF8", session);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error creating temp copy of config.", e);
+            } catch (MavenFilteringException e) {
+                throw new MojoExecutionException("Error filtering config file.", e);
+            }
+            
             return filteredConfig;
         } else {
             return configFile;
