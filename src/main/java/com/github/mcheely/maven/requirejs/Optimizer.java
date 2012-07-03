@@ -41,7 +41,8 @@ public class Optimizer {
         args[0] = "-o";
         args[1] = buildProfile.getAbsolutePath();
         
-        RhinoRunner.exec(optimizerFile, args, reporter);
+        RhinoRunner runner = new RhinoRunner();
+        runner.exec(optimizerFile, args, reporter);
     }
 
     private File getClasspathOptimizerFile() throws IOException {

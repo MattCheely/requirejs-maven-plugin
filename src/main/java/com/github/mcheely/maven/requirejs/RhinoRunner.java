@@ -37,15 +37,11 @@ package com.github.mcheely.maven.requirejs;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
-import org.mozilla.javascript.Kit;
-import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -64,40 +60,9 @@ public class RhinoRunner  {
 
     private static final long serialVersionUID = 3859222870741981547L;
     
-    /**
-     * Proxy class to avoid proliferation of anonymous classes.
-     */
-    private static class IProxy implements ContextAction, QuitAction {
-        private static final int PROCESS_FILES = 1;
-
-        private int type;
-        String[] args;
-
-        IProxy(int type) {
-            this.type = type;
-        }
-
-        public Object run(Context cx) {
-            if (type == PROCESS_FILES) {
-                processFiles(cx, args);
-            } else {
-                throw Kit.codeBug();
-            }
-            return null;
-        }
-
-        @Override
-        public void quit(Context context, int exitCode) {
-            if (exitCode != 0) {
-                throw new RhinoRunnerException("Script exited with non-zero status: " + exitCode);
-            }
-        }
-
-    }
-    
-    private static ContextFactory contextFactory = new ContextFactory();
-    private static Global global = new Global();
-    private static List<File> fileList = new ArrayList<File>();
+    private ContextFactory contextFactory = new ContextFactory();
+    private Global global = new Global();
+    private File file;
 
     /**
      * Execute a js file.
@@ -107,52 +72,43 @@ public class RhinoRunner  {
      * @param globalVariables global js variables to set.
      * @param reporter error reporter.
      */
-    public static void exec(File mainScript, String[] args, ErrorReporter reporter) {
-        //contextFactory.setErrorReporter(reporter);
+    public void exec(File mainScript, final String[] args, final ErrorReporter reporter) {
+        if(!global.isInitialized()) {
+            global.init(contextFactory);
+            global.initQuitAction(new QuitAction() {
+                @Override
+                public void quit(Context context, int exitCode) {
+                    if (exitCode != 0) {
+                        throw new RhinoRunnerException("Script exited with non-zero status: " + exitCode);
+                    }
+                }
+            });
+        }
         
-        global.init(contextFactory);
-        
-        
-        fileList.add(mainScript);
-        
-        IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
-        iproxy.args = args;
-        global.initQuitAction(iproxy);
-        
-        contextFactory.call(iproxy);
+        file = mainScript;
+        contextFactory.call(new ContextAction() {
+            @Override
+            public Object run(Context cx) {
+                cx.setErrorReporter(reporter);
+                processFile(cx, args);
+                return null;
+            }
+        });
     }
     
-    static void processFiles(Context cx, String[] args) {
+    private void processFile(Context cx, String[] args) {
         // define "arguments" array in the top-level object:
         // need to allocate new array since newArray requires instances
         // of exactly Object[], not ObjectSubclass[]
         Object[] array = new Object[args.length];
         System.arraycopy(args, 0, array, 0, args.length);
         Scriptable argsObj = cx.newArray(global, array);
-        global.defineProperty("arguments", argsObj,
-                              ScriptableObject.DONTENUM);
-
-
-        for (File file: fileList) {
-            try {
-                processFile(cx, global, file);
-            } catch (IOException ioex) {
-                String message = "Could not read file: " + file.getAbsolutePath();
-                Context.reportError(message);
-                throw new RhinoRunnerException(message, ioex);
-            } catch (RhinoException rex) {
-                String message = "Rhino Exception: " + rex.getMessage();
-                Context.reportError(message);
-                throw new RhinoRunnerException(message, rex);
-            } catch (VirtualMachineError ex) {
-                String message = "Uncaught javascript exception: " + ex.toString();
-                Context.reportError(message);
-                throw new RhinoRunnerException(message, ex);
-            }
+        if (!global.has("arguments", global)) {
+            global.defineProperty("arguments", argsObj, ScriptableObject.DONTENUM);
+        } else {
+            global.put("arguments", global, argsObj);
         }
-    }
-    
-    static void processFile(Context cx, Scriptable scope, File file) throws IOException {
+
         String path = file.getAbsolutePath();
         Object source = readFileOrUrl(path, true);
         Script script;
@@ -174,7 +130,7 @@ public class RhinoRunner  {
         script = cx.compileString(strSrc, path, 1, null);
         
         if (script != null) {
-            script.exec(cx, scope);
+            script.exec(cx, global);
         }
     }
 
@@ -183,8 +139,12 @@ public class RhinoRunner  {
      * @return file or url content as <tt>byte[]</tt> or as <tt>String</tt> if
      * <tt>convertToString</tt> is true.
      */
-    private static Object readFileOrUrl(String path, boolean convertToString) throws IOException {
-        return SourceReader.readFileOrUrl(path, convertToString, null);
+    private static Object readFileOrUrl(String path, boolean convertToString) {
+        try {
+            return SourceReader.readFileOrUrl(path, convertToString, null);
+        } catch (IOException e) {
+            throw new RhinoRunnerException("Unable to read script.", e);
+        }
     }
   
 }
