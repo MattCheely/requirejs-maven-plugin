@@ -69,11 +69,23 @@ public class OptimizeMojo extends AbstractMojo {
     private boolean filterConfig;
 
     /**
+     * Skip optimization when this parameter is true.
+     *
+     * @parameter default-value=false
+     */
+    private boolean skip;
+
+    /**
      * Optimize files.
      * 
      * @throws MojoExecutionException if there is a problem optimizing files.
      */
     public void execute() throws MojoExecutionException {
+        if (skip) {
+            getLog().info("Optimization is skipped.");
+            return;
+        }
+
         try {
             Optimizer builder = new Optimizer();
             ErrorReporter reporter = new MojoErrorReporter(getLog(), true);
