@@ -71,7 +71,7 @@ public class OptimizeMojo extends AbstractMojo {
     /**
      * Skip optimization when this parameter is true.
      *
-     * @parameter default-value=false
+     * @parameter expression="${requirejs.optimize.skip}" default-value=false
      */
     private boolean skip;
 

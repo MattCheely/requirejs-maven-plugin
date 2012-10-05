@@ -53,6 +53,10 @@ Just add the plugin to your pom:
             <filterConfig>
                 true
             </filterConfig>
+            <!-- Skip requirejs optimization if true -->
+            <skip>
+                false
+            </skip>
         </configuration>
       </plugin>
     </plugins>
@@ -94,6 +98,11 @@ like ${basedir} (defaults to false)
 use absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to prefix
 your paths. Otherwise, the build won't find your files, as the filtered version of the config file is created in
 a temporary location outside of the project.
+
+**skip**
+
+If skip is set to true, optimization will be skipped. This may be useful for reducing build time if optimization is not needed.
+It can also be set via the command line with ```-Drequirejs.optimize.skip=true```.
 
 ## Thanks
 
