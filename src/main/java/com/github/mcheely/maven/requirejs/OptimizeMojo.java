@@ -8,7 +8,6 @@ import java.util.Map;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
@@ -99,12 +98,9 @@ public class OptimizeMojo extends AbstractMojo {
             throw new MojoExecutionException("Failed to read r.js", e);
         } catch (EvaluatorException e) {
             throw new MojoExecutionException("Failed to execute r.js", e);
-        }
-
-    }
-
-    public Log getLog() {
-        return super.getLog();
+        } catch (OptimizationException e) {
+			throw new MojoExecutionException("r.js exited with an error.");
+		}
     }
 
     @SuppressWarnings("rawtypes")

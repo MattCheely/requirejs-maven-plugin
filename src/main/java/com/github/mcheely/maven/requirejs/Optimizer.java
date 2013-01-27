@@ -8,6 +8,8 @@ import java.io.InputStream;
 import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.ErrorReporter;
 
+import com.github.mcheely.maven.requirejs.RhinoRunner.ExitStatus;
+
 /**
  * Optimizes js files.
  */
@@ -21,8 +23,9 @@ public class Optimizer {
      * @param buildProfile file containing optimizer build profile configuration
      * @param reporter error reporter
      * @throws IOException if there is a problem reading/writing optimization files
+     * @throws OptimizationException if the optimizer script returns an error status
      */
-    public void optimize(File buildProfile, ErrorReporter reporter) throws IOException {
+    public void optimize(File buildProfile, ErrorReporter reporter) throws IOException, OptimizationException {
         File optimizerFile = getClasspathOptimizerFile();
         optimize(buildProfile, optimizerFile, reporter);
     }
@@ -34,15 +37,19 @@ public class Optimizer {
      * @param optimizerFile file containing optimizer library
      * @param reporter error reporter
      * @throws IOException if there is a problem reading/writing optimization files
+     * @throws OptimizationException if the optimizer script returns an error status
      */
-    public void optimize(File buildProfile, File optimizerFile, ErrorReporter reporter) throws IOException {
+    public void optimize(File buildProfile, File optimizerFile, ErrorReporter reporter) throws IOException, OptimizationException {
         
         String[] args = new String[2];
         args[0] = "-o";
         args[1] = buildProfile.getAbsolutePath();
         
         RhinoRunner runner = new RhinoRunner();
-        runner.exec(optimizerFile, args, reporter);
+        ExitStatus status = runner.exec(optimizerFile, args, reporter);
+        if (!status.success()) {
+        	throw new OptimizationException("Optimizer returned non-zer exit status.");
+        }
     }
 
     private File getClasspathOptimizerFile() throws IOException {

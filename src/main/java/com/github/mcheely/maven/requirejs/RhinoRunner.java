@@ -58,11 +58,25 @@ import org.mozilla.javascript.tools.shell.QuitAction;
  */
 public class RhinoRunner  {
 
-    private static final long serialVersionUID = 3859222870741981547L;
-    
     private ContextFactory contextFactory = new ContextFactory();
     private Global global = new Global();
     private File file;
+    
+    public class ExitStatus {
+    	private int exitCode;
+    	
+		public int getExitCode() {
+			return exitCode;
+		}
+		
+		public void setExitCode(int exitCode) {
+			this.exitCode = exitCode;
+		}
+    	
+		public boolean success() {
+			return (this.exitCode == 0);
+		}
+    }
 
     /**
      * Execute a js file.
@@ -72,15 +86,14 @@ public class RhinoRunner  {
      * @param globalVariables global js variables to set.
      * @param reporter error reporter.
      */
-    public void exec(File mainScript, final String[] args, final ErrorReporter reporter) {
+    public ExitStatus exec(File mainScript, final String[] args, final ErrorReporter reporter) {
+    	final ExitStatus status = new ExitStatus();
         if(!global.isInitialized()) {
             global.init(contextFactory);
             global.initQuitAction(new QuitAction() {
                 @Override
                 public void quit(Context context, int exitCode) {
-                    if (exitCode != 0) {
-                        throw new RhinoRunnerException("Script exited with non-zero status: " + exitCode);
-                    }
+                	status.setExitCode(exitCode);
                 }
             });
         }
@@ -94,6 +107,8 @@ public class RhinoRunner  {
                 return null;
             }
         });
+        
+        return status;
     }
     
     private void processFile(Context cx, String[] args) {
