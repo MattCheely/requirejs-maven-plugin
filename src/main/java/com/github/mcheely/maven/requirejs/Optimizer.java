@@ -48,7 +48,7 @@ public class Optimizer {
         RhinoRunner runner = new RhinoRunner();
         ExitStatus status = runner.exec(optimizerFile, args, reporter);
         if (!status.success()) {
-        	throw new OptimizationException("Optimizer returned non-zer exit status.");
+        	throw new OptimizationException("Optimizer returned non-zero exit status.");
         }
     }
 
