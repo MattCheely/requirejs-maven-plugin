@@ -63,6 +63,8 @@ Just add the plugin to your pom:
 
 ### Goal: optimize
 
+```mvn requirejs:optimize```
+
 Uses the r.js optimizer to aggregate and minify your project. Dependencies should be defined using
 the Asynchronous Module Definition pattern, see the RequireJS documentation at:
 
