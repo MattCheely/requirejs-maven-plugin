@@ -32,7 +32,7 @@ Just add the plugin to your pom:
       <plugin>
         <groupId>com.github.mcheely</groupId>
         <artifactId>requirejs-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.1.0</version>
         <executions>
           <execution>
             <goals>
@@ -49,7 +49,11 @@ Just add the plugin to your pom:
             <optimizerFile>
                 ${basedir}/src/main/scripts/r.js
             </optimizerFile>
-            <!-- whether or not to process config with maven filters -->
+            <!--
+            Whether or not to process configFile with maven filters.
+            If you use this option, some options in your configFile
+            must resolve to absolute paths (see below)
+            -->
             <filterConfig>
                 true
             </filterConfig>
@@ -84,22 +88,23 @@ http://requirejs.org/docs/optimization.html#wholeproject
 
 **configFile**
 
-The path to the config file that will be passed to the r.js optimizer.
+The path to the config file that will be passed to the r.js optimizer. This is equivalent to the -o argument when runing r.js from the command line.
 
 **optimizerFile**
 
-The path to the optimizer script (r.js) that will be run to optimize your app. If not provided, the default version
-from the classpath will be used.
+The path to the optimizer script (r.js) that will be run to optimize your app. If not provided, a default version packaged with the plugin. (currently v2.1.4)
 
 **filterConfig**
 
 Boolean option to indicate whether or not to run the config file through maven filters to replace tokens
 like ${basedir} (defaults to false)
 
-*Important Note:* if you enable filterConfig, be sure that the 'appDir' and 'dir' options in your config
-use absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to prefix
-your paths. Otherwise, the build won't find your files, as the filtered version of the config file is created in
-a temporary location outside of the project.
+The filtered file is generated at ${project.build.directory}/requirejs-config/filtered-build.js.
+
+*Important Note:* The RequireJS optimizer searches for js files relative to the config file's path. Because filtering
+moves the effective config file to a new location, it is important that any 'baseUrl', 'appDir', or 'dir' options in
+your config resolve absolute paths. The easiest way to do that is to use the maven path variables like ${basedir} to
+prefix those potions.
 
 **skip**
 
@@ -108,7 +113,7 @@ It can also be set via the command line with ```-Drequirejs.optimize.skip=true``
 
 ## Thanks
 
-requirejs-maven-plugin is available on github because my employer, lulu.com, is great about letting me
+requirejs-maven-plugin is available on github because my previous employer, lulu.com, was great about letting me
 share the work I do for them.
 
 This project is originally based on Jacob Hansson's brew plugin at:

@@ -36,6 +36,13 @@ public class OptimizeMojo extends AbstractMojo {
      * @readonly
      */
     private MavenProject project;
+
+    /**
+     * @parameter default-value="${project.build.directory}"
+     * @required
+     * @readonly
+     */
+    private File buildDirectory;
     
     /**
      * @parameter expression="${session}"
@@ -99,8 +106,8 @@ public class OptimizeMojo extends AbstractMojo {
         } catch (EvaluatorException e) {
             throw new MojoExecutionException("Failed to execute r.js", e);
         } catch (OptimizationException e) {
-			throw new MojoExecutionException("r.js exited with an error.");
-		}
+            throw new MojoExecutionException("r.js exited with an error.");
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -114,10 +121,15 @@ public class OptimizeMojo extends AbstractMojo {
             File filteredConfig;
             
             try {
-                filteredConfig = File.createTempFile("requirejs-maven-plugin-profile", ".js");
+                File profileDir = new File(buildDirectory, "requirejs-config/");
+                profileDir.mkdirs();
+                filteredConfig = new File(profileDir, "filtered-build.js");
+                if (!filteredConfig.exists()) {
+                    filteredConfig.createNewFile();
+                }
                 mavenFileFilter.copyFile(configFile, filteredConfig, true, project, new ArrayList(), true, "UTF8", session);
             } catch (IOException e) {
-                throw new MojoExecutionException("Error creating temp copy of config.", e);
+                throw new MojoExecutionException("Error creating filtered build file.", e);
             } catch (MavenFilteringException e) {
                 throw new MojoExecutionException("Error filtering config file.", e);
             }
