@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.github.mcheely</groupId>
+    <artifactId>nodejs</artifactId>
+    <version>0.8.21-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>nodejs</name>
+
+    <url>http://github.com/mcheely/requirejs-maven-plugin</url>
+
+    <description>
+        Maven artifact for running javascript files using NodeJS
+    </description>
+
+    <scm>
+        <connection>scm:git:git://github.com/mcheely/requirejs-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:mcheely/requirejs-maven-plugin.git</developerConnection>
+        <url>git://github.com/mcheely/requirejs-maven-plugin.git</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/linux-x86.xml</descriptor>
+                        <descriptor>src/main/assembly/linux-x64.xml</descriptor>
+                        <descriptor>src/main/assembly/macos-x86.xml</descriptor>
+                        <descriptor>src/main/assembly/macos-x64.xml</descriptor>
+                        <descriptor>src/main/assembly/win-x86.xml</descriptor>
+                        <descriptor>src/main/assembly/win-x64.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <!-- Include integration tests within integration-test phase. -->
+                                <include>**/*IT.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
