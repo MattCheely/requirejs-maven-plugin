@@ -76,6 +76,11 @@
             <version>r2180</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.github.mcheely</groupId>
+            <artifactId>nodejs-maven-util</artifactId>
+            <version>0.8.21</version>
+        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

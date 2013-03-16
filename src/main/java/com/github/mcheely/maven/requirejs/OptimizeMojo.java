@@ -82,6 +82,13 @@ public class OptimizeMojo extends AbstractMojo {
     private boolean skip;
 
     /**
+     * Defines which javascript engine to use. Possible values: rhino or nodejs.
+     *
+     * @parameter default-value=rhino
+     */
+    private String runner;
+
+    /**
      * Optimize files.
      * 
      * @throws MojoExecutionException if there is a problem optimizing files.
@@ -92,14 +99,21 @@ public class OptimizeMojo extends AbstractMojo {
             return;
         }
 
+        Runner runner;
+        if (this.runner.equalsIgnoreCase("nodejs")) {
+          runner = new NodeJsRunner();
+        } else {
+          runner = new RhinoRunner();
+        }
+
         try {
             Optimizer builder = new Optimizer();
             ErrorReporter reporter = new MojoErrorReporter(getLog(), true);
             
             if (optimizerFile != null) {
-                builder.optimize(createBuildProfile(), optimizerFile, reporter);
+                builder.optimize(createBuildProfile(), optimizerFile, reporter, runner);
             } else {
-                builder.optimize(createBuildProfile(), reporter);
+                builder.optimize(createBuildProfile(), reporter, runner);
             }
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to read r.js", e);

@@ -8,8 +8,6 @@ import java.io.InputStream;
 import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.ErrorReporter;
 
-import com.github.mcheely.maven.requirejs.RhinoRunner.ExitStatus;
-
 /**
  * Optimizes js files.
  */
@@ -20,32 +18,35 @@ public class Optimizer {
     /**
      * Optimize using the built-in version of r.js.
      * 
+     *
      * @param buildProfile file containing optimizer build profile configuration
      * @param reporter error reporter
+     * @param runner Runner which will execute the optimize script
      * @throws IOException if there is a problem reading/writing optimization files
      * @throws OptimizationException if the optimizer script returns an error status
      */
-    public void optimize(File buildProfile, ErrorReporter reporter) throws IOException, OptimizationException {
+    public void optimize(File buildProfile, ErrorReporter reporter, Runner runner) throws IOException, OptimizationException {
         File optimizerFile = getClasspathOptimizerFile();
-        optimize(buildProfile, optimizerFile, reporter);
+        optimize(buildProfile, optimizerFile, reporter, runner);
     }
 
     /**
      * Optimize using an external version of r.js.
      * 
+     *
      * @param buildProfile file containing optimizer build profile configuration
      * @param optimizerFile file containing optimizer library
      * @param reporter error reporter
+     * @param runner Runner which will execute the optimize script
      * @throws IOException if there is a problem reading/writing optimization files
      * @throws OptimizationException if the optimizer script returns an error status
      */
-    public void optimize(File buildProfile, File optimizerFile, ErrorReporter reporter) throws IOException, OptimizationException {
+    public void optimize(File buildProfile, File optimizerFile, ErrorReporter reporter, Runner runner) throws IOException, OptimizationException {
         
         String[] args = new String[2];
         args[0] = "-o";
         args[1] = buildProfile.getAbsolutePath();
-        
-        RhinoRunner runner = new RhinoRunner();
+
         ExitStatus status = runner.exec(optimizerFile, args, reporter);
         if (!status.success()) {
         	throw new OptimizationException("Optimizer returned non-zero exit status.");
