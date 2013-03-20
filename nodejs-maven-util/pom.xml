@@ -131,7 +131,7 @@
             <activation>
                 <os>
                     <family>linux</family>
-                    <arch>x64</arch>
+                    <arch>amd64</arch>
                 </os>
             </activation>
             <properties>
