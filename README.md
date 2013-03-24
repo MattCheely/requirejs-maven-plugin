@@ -111,6 +111,17 @@ prefix those potions.
 If skip is set to true, optimization will be skipped. This may be useful for reducing build time if optimization is not needed.
 It can also be set via the command line with ```-Drequirejs.optimize.skip=true```.
 
+**runner**
+
+Specifies which Javascript engine is used to execute the r.js optimizer. Can be either *rhino* or *nodejs*, defaults to *rhino*.
+When using *nodejs*, a NodeJS executable must be available on the build environment. By default the plugin assumes
+an executable binary called 'node' is available on PATH. To customize the node executable's location, supply a path
+to the executable using nodeJsFile
+
+**nodeJsFile**
+
+Path to NodeJS executable. Only applies when *runner* is set to *nodejs*. Default value: *node*
+
 ## Thanks
 
 requirejs-maven-plugin is available on github because my previous employer, lulu.com, was great about letting me

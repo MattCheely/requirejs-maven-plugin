@@ -89,6 +89,13 @@ public class OptimizeMojo extends AbstractMojo {
     private String runner;
 
     /**
+     * Defines the location of the NodeJS executable.
+     *
+     * @parameter default-value=node
+     */
+    private String nodeJsFile;
+
+    /**
      * Optimize files.
      * 
      * @throws MojoExecutionException if there is a problem optimizing files.
@@ -101,7 +108,7 @@ public class OptimizeMojo extends AbstractMojo {
 
         Runner runner;
         if (this.runner.equalsIgnoreCase("nodejs")) {
-          runner = new NodeJsRunner();
+          runner = new NodeJsRunner(nodeJsFile);
         } else {
           runner = new RhinoRunner();
         }
