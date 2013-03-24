@@ -59,7 +59,7 @@
     <build>
         <resources>
             <resource>
-                <directory>/requirejs-maven-plugin/src/main/resources</directory>
+                <directory>/src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
