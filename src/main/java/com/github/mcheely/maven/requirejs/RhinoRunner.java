@@ -56,34 +56,16 @@ import org.mozilla.javascript.tools.shell.QuitAction;
  * @author Norris Boyd
  * @author Matthew Cheely
  */
-public class RhinoRunner  {
+public class RhinoRunner implements Runner  {
 
     private ContextFactory contextFactory = new ContextFactory();
     private Global global = new Global();
     private File file;
-    
-    public class ExitStatus {
-    	private int exitCode;
-    	
-		public int getExitCode() {
-			return exitCode;
-		}
-		
-		public void setExitCode(int exitCode) {
-			this.exitCode = exitCode;
-		}
-    	
-		public boolean success() {
-			return (this.exitCode == 0);
-		}
-    }
 
-    /**
+  /**
      * Execute a js file.
-     * @param includes other js files to include and parse before executing the main script.
      * @param mainScript the script to run.
      * @param args arguments that will be visible to the script.
-     * @param globalVariables global js variables to set.
      * @param reporter error reporter.
      */
     public ExitStatus exec(File mainScript, final String[] args, final ErrorReporter reporter) {
