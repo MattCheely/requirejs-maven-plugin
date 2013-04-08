@@ -22,14 +22,14 @@ import org.mozilla.javascript.EvaluatorException;
  *
  */
 public class OptimizeMojo extends AbstractMojo {
-    
+
     /**
      * @component role="org.apache.maven.shared.filtering.MavenFileFilter"
      *            role-hint="default"
      * @required
      */
     private MavenFileFilter mavenFileFilter;
-    
+
     /**
      * @parameter default-value="${project}"
      * @required
@@ -43,21 +43,21 @@ public class OptimizeMojo extends AbstractMojo {
      * @readonly
      */
     private File buildDirectory;
-    
+
     /**
      * @parameter expression="${session}"
      * @required
      * @readonly
      */
-    protected MavenSession session; 
-    
+    protected MavenSession session;
+
     /**
      * Path to optimizer script.
-     * 
+     *
      * @parameter
      */
     private File optimizerFile;
-    
+
     /**
      * Path to optimizer json config.
      *
@@ -65,11 +65,11 @@ public class OptimizeMojo extends AbstractMojo {
      * @required
      */
     private File configFile;
-    
+
     /**
-     * Whether or not the config file should 
+     * Whether or not the config file should
      * be maven filtered for token replacement.
-     * 
+     *
      * @parameter default-value=false
      */
     private boolean filterConfig;
@@ -82,22 +82,15 @@ public class OptimizeMojo extends AbstractMojo {
     private boolean skip;
 
     /**
-     * Defines which javascript engine to use. Possible values: rhino or nodejs.
+     * Defines the location of the NodeJS executable to use.
      *
-     * @parameter default-value=rhino
+     * @parameter
      */
-    private String runner;
-
-    /**
-     * Defines the location of the NodeJS executable.
-     *
-     * @parameter default-value=node
-     */
-    private String nodeJsFile;
+    private String nodeExecutable;
 
     /**
      * Optimize files.
-     * 
+     *
      * @throws MojoExecutionException if there is a problem optimizing files.
      */
     public void execute() throws MojoExecutionException {
@@ -107,16 +100,20 @@ public class OptimizeMojo extends AbstractMojo {
         }
 
         Runner runner;
-        if (this.runner.equalsIgnoreCase("nodejs")) {
-          runner = new NodeJsRunner(nodeJsFile);
+        String nodeCommand = getNodeJsPath();
+        if (nodeCommand != null) {
+          getLog().info("Running with Node @ " + nodeCommand);
+          runner = new NodeJsRunner(nodeCommand);
         } else {
+          getLog().info("Node not detected. Falling back to rhino");
           runner = new RhinoRunner();
         }
+
 
         try {
             Optimizer builder = new Optimizer();
             ErrorReporter reporter = new MojoErrorReporter(getLog(), true);
-            
+
             if (optimizerFile != null) {
                 builder.optimize(createBuildProfile(), optimizerFile, reporter, runner);
             } else {
@@ -140,7 +137,7 @@ public class OptimizeMojo extends AbstractMojo {
     private File createBuildProfile() throws MojoExecutionException {
         if (filterConfig) {
             File filteredConfig;
-            
+
             try {
                 File profileDir = new File(buildDirectory, "requirejs-config/");
                 profileDir.mkdirs();
@@ -154,10 +151,18 @@ public class OptimizeMojo extends AbstractMojo {
             } catch (MavenFilteringException e) {
                 throw new MojoExecutionException("Error filtering config file.", e);
             }
-            
+
             return filteredConfig;
         } else {
             return configFile;
         }
+    }
+
+    private String getNodeJsPath() {
+      if (nodeExecutable != null) {
+        return nodeExecutable;
+      } else {
+        return NodeJsRunner.detectNodeCommand();
+      }
     }
 }

@@ -9,10 +9,31 @@ import java.io.File;
 import java.io.IOException;
 
 public class NodeJsRunner implements Runner {
+  private static final String[] nodeCommands = new String[]{"node", "nodejs"};
+
   private String nodeJsFile;
 
   public NodeJsRunner(String nodeJsFile) {
     this.nodeJsFile = nodeJsFile;
+  }
+
+  public static String detectNodeCommand() {
+    for (String nodeCmd : nodeCommands) {
+      CommandLine cmdLine = CommandLine.parse(nodeCmd);
+      cmdLine.addArguments("--version");
+
+      DefaultExecutor executor = new DefaultExecutor();
+
+      try {
+        if (executor.execute(cmdLine) == 0) {
+          return nodeCmd;
+        }
+      } catch (IOException e) {
+        //Keep testing.
+      }
+    }
+
+    return null;
   }
 
   @Override
@@ -22,7 +43,6 @@ public class NodeJsRunner implements Runner {
     try {
       boolean result = executeScript(nodeJsFile, mainScript.getAbsolutePath(), args);
       exitStatus.setExitCode(result?0:1);
-
     } catch (IOException e) {
       exitStatus.setExitCode(1);
     }
