@@ -12,6 +12,13 @@ https://github.com/amdjs/amdjs-api/wiki/AMD
 The plugin has a very simple design. Just provide a json confg file for the
 optimization process as documented at http://requirejs.org/docs/optimization.html#wholeproject
 
+**node support**
+
+Node.js is the fastest way to run the r.js optimizer. The plugin will try to detect if node is
+available and will use it if it is. You can also specify a path to the node executable if it's
+not in the path. If node cannot be found, the plugin falls back to the much slower rhino js
+runtime.
+
 **forward/backward/sideways compatible**
 
 We'll make an effort to keep the r.js version embedded in the plugin up to date, but if
@@ -32,7 +39,7 @@ Just add the plugin to your pom:
       <plugin>
         <groupId>com.github.mcheely</groupId>
         <artifactId>requirejs-maven-plugin</artifactId>
-        <version>1.1.0</version>
+        <version>2.0.0-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
@@ -41,6 +48,10 @@ Just add the plugin to your pom:
           </execution>
         </executions>
         <configuration>
+            <!-- optional path to a nodejs executable -->
+            <nodeExecutable>
+                /opt/nodejs/node
+            </nodeExecutable>
             <!-- path to optimizer json config file -->
             <configFile>
                 ${basedir}/src/main/config/buildconfig.js
@@ -85,6 +96,10 @@ see the RequireJS optimization documentation at:
 http://requirejs.org/docs/optimization.html#wholeproject
 
 ### Plugin Options
+
+**nodeExecutable**
+
+An optional path to a nodejs executable. This should not be needed if node is in the system path as 'node' or 'nodejs';
 
 **configFile**
 
