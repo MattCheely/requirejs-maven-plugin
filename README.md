@@ -1,3 +1,10 @@
+# Maintainer Needed
+I'm no longer using this plugin in any active projects, and I don't have the time to give it the
+TLC it deserves. If you're intersted in taking it over, fork it, let me know, and I'll put a
+prominent link here to your version. I'm also happy to help with any questions about getting your
+artifacts deployed to maven central if you haven't done it before. It's quite easy once you get 
+everything set up.
+
 # RequireJS maven plugin
 
 Builds javascript applications using the Asynchronous Module Definition (AMD)
@@ -39,7 +46,7 @@ Just add the plugin to your pom:
       <plugin>
         <groupId>com.github.mcheely</groupId>
         <artifactId>requirejs-maven-plugin</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.0</version>
         <executions>
           <execution>
             <goals>
